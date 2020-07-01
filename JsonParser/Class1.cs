@@ -31,6 +31,18 @@ namespace JsonParser.Classes
         public Responses responses { get; set; }
     }
 
+    public class Get
+    {
+        public string[] tags { get; set; }
+        public string operationId { get; set; }
+        public object[] consumes { get; set; }
+        public string[] produces { get; set; }
+        public Parameter1[] parameters { get; set; }
+        public Responses1 responses { get; set; }
+        public string summary { get; set; }
+        public string description { get; set; }
+    }
+
     public class Responses
     {
         public R200 r200 { get; set; }
@@ -65,17 +77,7 @@ namespace JsonParser.Classes
         public string type { get; set; }
     }
 
-    public class Get
-    {
-        public string[] tags { get; set; }
-        public string operationId { get; set; }
-        public object[] consumes { get; set; }
-        public string[] produces { get; set; }
-        public Parameter1[] parameters { get; set; }
-        public Responses1 responses { get; set; }
-        public string summary { get; set; }
-        public string description { get; set; }
-    }
+   
 
     public class Responses1
     {

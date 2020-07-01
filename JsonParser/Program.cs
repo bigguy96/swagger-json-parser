@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using JsonParser.Classes;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,7 +17,7 @@ namespace JsonParser
             var lines = new List<string>();
             var sb = new System.Text.StringBuilder("");
             var mydocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            var json = Path.Combine(mydocs, "GCWeb", "swagger_paths.json");
+            var json = System.IO.Path.Combine(mydocs, "GCWeb", "swagger_paths.json");
             using (var reader = new StreamReader(json))
             {
                 while ((line = reader.ReadLine()) != null)
@@ -71,47 +71,141 @@ namespace JsonParser
             sb.Replace("$ref", "ref");
             sb.Replace("enum", "renum");
 
-            await File.WriteAllTextAsync(Path.Combine(mydocs, "GCWeb", "swagger_test.json"), sb.ToString());
+            await File.WriteAllTextAsync(System.IO.Path.Combine(mydocs, "GCWeb", "swagger_test.json"), sb.ToString());
 
-            var jfile = await File.ReadAllTextAsync(Path.Combine(mydocs, "GCWeb", "swagger_test.json"));
-            //var swagger = JObject.Parse(jfile);
-            //var ds=  JsonConvert.DeserializeAnonymousType(jfile, null);
-
-            var r = JsonConvert.DeserializeObject<Classes.Rootobject>(jfile);
+            var jfile = await File.ReadAllTextAsync(System.IO.Path.Combine(mydocs, "GCWeb", "swagger_test.json"));
+            var r = JsonConvert.DeserializeObject<Rootobject>(jfile);
+            var list = new List<Api>();
 
             var post = r.paths.Where(w => w.post != null)
-                .Select(p => new
+                .Select(p => new Api
                 {
-                    p.enpoint,
-                    section = p.post.tags[0],
-                    p.post.summary,
-                    parameters = p.post.parameters.Select(pa => new { pa.name, pa.@in, pa.description, pa.renum, pa.required })
+                    Endpoint = p.enpoint,
+                    Verb = "post",
+                    Section = p.post.tags[0],
+                    Description = p.post.summary,
+                    Parameters = p.post.parameters.Select(pa => new Parameters
+                    {
+                        Name = pa.name,
+                        Location = pa.@in,
+                        Description = pa.description,
+                        Type = pa.type,
+                        Enums = pa.renum,
+                        Required = pa.required
+                    })
                 });
 
-            foreach (var item in post)
+            var get = r.paths.Where(w => w.get != null)
+                .Select(p => new Api
+                {
+                    Endpoint = p.enpoint,
+                    Verb = "get",
+                    Section = p.get.tags[0],
+                    Description = p.get.summary,
+                    Parameters = p.get.parameters.Select(pa => new Parameters
+                    {
+                        Name = pa.name,
+                        Location = pa.@in,
+                        Description = pa.description,
+                        Type = pa.type,
+                        Enums = pa.renum,
+                        Required = pa.required
+                    })
+                });
+
+            var put = r.paths.Where(w => w.put != null)
+                .Select(p => new Api
+                {
+                    Endpoint = p.enpoint,
+                    Verb = "put",
+                    Section = p.put.tags[0],
+                    Description = p.put.summary,
+                    Parameters = p.put.parameters.Select(pa => new Parameters
+                    {
+                        Name = pa.name,
+                        Location = pa.@in,
+                        Description = pa.description,
+                        Type = pa.type,
+                        Enums = pa.renum,
+                        Required = pa.required
+                    })
+                });
+
+            var delete = r.paths.Where(w => w.delete != null)
+                .Select(p => new Api
+                {
+                    Endpoint = p.enpoint,
+                    Verb = "delete",
+                    Section = p.delete.tags[0],
+                    Description = p.delete.summary,
+                    Parameters = p.delete.parameters.Select(pa => new Parameters
+                    {
+                        Name = pa.name,
+                        Location = pa.@in,
+                        Description = pa.description,
+                        Type = pa.type,
+                        Enums = pa.renum,
+                        Required = pa.required
+                    })
+                });
+
+            var head = r.paths.Where(w => w.head != null)
+                .Select(p => new Api
+                {
+                    Endpoint = p.enpoint,
+                    Verb = "head",
+                    Section = p.head.tags[0],
+                    Description = p.head.summary,
+                    Parameters = p.head.parameters.Select(pa => new Parameters
+                    {
+                        Name = pa.name,
+                        Location = pa.@in,
+                        Description = pa.description,
+                        Type = pa.type,
+                        Enums = pa.renum,
+                        Required = pa.required
+                    })
+                });
+
+            list.AddRange(post);
+            list.AddRange(get);
+            list.AddRange(put);
+            list.AddRange(delete);
+            list.AddRange(head);
+
+            var sections = list.GroupBy(x => x.Section);
+
+            foreach (var section in sections)
             {
                 Console.WriteLine("*******************************************************");
-                Console.WriteLine($"endpoint: {item.enpoint}");
-                Console.WriteLine($"section: {item.section}");
-                Console.WriteLine($"description: {item.summary}");
+                Console.WriteLine($"Section name: {section.Key}");
+                Console.WriteLine("*******************************************************");
 
-                foreach (var param in item.parameters)
+                foreach (var item in section)
                 {
-                    Console.WriteLine($"parameter name: {param.name}");
-                    Console.WriteLine($"parameter location: {param.@in}");
-                    Console.WriteLine($"parameter description: {param.description}");
-                    Console.WriteLine($"parameter required: {param.required}");
-                }
+                    Console.WriteLine("############################################");
+                    Console.WriteLine($"endpoint: {item.Endpoint}");
+                    Console.WriteLine($"verb: {item.Verb}");
+                    Console.WriteLine($"section: {item.Section}");
+                    Console.WriteLine($"description: {item.Description}");
 
-                //foreach (var response in item.post.responses.r200.description)
-                //{
-
-                //}
-
-            }
+                    foreach (var param in item.Parameters)
+                    {
+                        Console.WriteLine($"parameter name: {param.Name}");
+                        Console.WriteLine($"parameter location: {param.Location}");
+                        Console.WriteLine($"parameter description: {param.Description}");
+                        Console.WriteLine($"parameter type: {param.Type}");
+                        Console.WriteLine($"parameter enumeration: {param.Enumeration}");
+                        Console.WriteLine($"parameter required: {param.Required}");
+                    }
+                    Console.WriteLine("############################################");
+                }                
+            }            
 
             // Suspend the screen.  
             Console.ReadLine();
         }
     }
 }
+
+//https://stackoverflow.com/questions/29326796/deserialize-json-with-unknown-fields-properties
