@@ -45,8 +45,7 @@ namespace JsonParser
 
                 if (item.Contains("paths"))
                 {
-                    sb.Append($"{item.Replace("{", "")} [");
-                    //sb.AppendLine("{");
+                    sb.Append($"{item.Replace("{", "")} [");                    
                 }
                 else if (item.Contains("api/v"))
                 {
@@ -56,8 +55,7 @@ namespace JsonParser
                 else if (counter == 5)
                 {
                     sb.Append(item.Replace("}", "},"));
-                    counter++;
-                    //sb.AppendLine(item.Replace("}","}],")); 
+                    counter++;                    
                 }
                 else
                 {
@@ -173,34 +171,29 @@ namespace JsonParser
             list.AddRange(delete);
             list.AddRange(head);
 
-            var sections = list.GroupBy(x => x.Section);
+            var sections = list.OrderBy(x => x.Section).ToList();
 
             foreach (var section in sections)
             {
-                Console.WriteLine("*******************************************************");
-                Console.WriteLine($"Section name: {section.Key}");
-                Console.WriteLine("*******************************************************");
+                Console.WriteLine("############################################");
+                Console.WriteLine($"Section name: {section.Section}");
+                Console.WriteLine("############################################");
 
-                foreach (var item in section)
+                Console.WriteLine($"endpoint: {section.Endpoint}");
+                Console.WriteLine($"verb: {section.Verb}");
+                Console.WriteLine($"section: {section.Section}");
+                Console.WriteLine($"description: {section.Description}");
+
+                foreach (var param in section.Parameters)
                 {
-                    Console.WriteLine("############################################");
-                    Console.WriteLine($"endpoint: {item.Endpoint}");
-                    Console.WriteLine($"verb: {item.Verb}");
-                    Console.WriteLine($"section: {item.Section}");
-                    Console.WriteLine($"description: {item.Description}");
-
-                    foreach (var param in item.Parameters)
-                    {
-                        Console.WriteLine($"parameter name: {param.Name}");
-                        Console.WriteLine($"parameter location: {param.Location}");
-                        Console.WriteLine($"parameter description: {param.Description}");
-                        Console.WriteLine($"parameter type: {param.Type}");
-                        Console.WriteLine($"parameter enumeration: {param.Enumeration}");
-                        Console.WriteLine($"parameter required: {param.Required}");
-                    }
-                    Console.WriteLine("############################################");
-                }                
-            }            
+                    Console.WriteLine($"parameter name: {param.Name}");
+                    Console.WriteLine($"parameter location: {param.Location}");
+                    Console.WriteLine($"parameter description: {param.Description}");
+                    Console.WriteLine($"parameter type: {param.Type}");
+                    Console.WriteLine($"parameter enumeration: {param.Enumeration}");
+                    Console.WriteLine($"parameter required: {param.Required}");
+                }
+            }
 
             // Suspend the screen.  
             Console.ReadLine();
