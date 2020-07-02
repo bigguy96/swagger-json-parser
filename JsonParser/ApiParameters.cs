@@ -1,8 +1,6 @@
-﻿using System.Linq;
-
-namespace JsonParser.Classes
+﻿namespace JsonParser.Classes
 {
-    public class Parameters
+    public class ApiParameters
     {
         public string Name { get; set; }
         public string Location { get; set; }
@@ -13,5 +11,3 @@ namespace JsonParser.Classes
         public bool Required { get; set; }
     }
 }
-
-//https://stackoverflow.com/questions/29326796/deserialize-json-with-unknown-fields-properties

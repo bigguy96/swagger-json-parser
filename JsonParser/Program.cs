@@ -84,7 +84,7 @@ namespace JsonParser
                     Verb = "post",
                     Section = p.post.tags[0],
                     Description = p.post.summary,
-                    Parameters = p.post.parameters.Select(pa => new Parameters
+                    Parameters = p.post.parameters.Select(pa => new ApiParameters
                     {
                         Name = pa.name,
                         Location = pa.@in,
@@ -102,7 +102,7 @@ namespace JsonParser
                     Verb = "get",
                     Section = p.get.tags[0],
                     Description = p.get.summary,
-                    Parameters = p.get.parameters.Select(pa => new Parameters
+                    Parameters = p.get.parameters.Select(pa => new ApiParameters
                     {
                         Name = pa.name,
                         Location = pa.@in,
@@ -120,7 +120,7 @@ namespace JsonParser
                     Verb = "put",
                     Section = p.put.tags[0],
                     Description = p.put.summary,
-                    Parameters = p.put.parameters.Select(pa => new Parameters
+                    Parameters = p.put.parameters.Select(pa => new ApiParameters
                     {
                         Name = pa.name,
                         Location = pa.@in,
@@ -138,7 +138,7 @@ namespace JsonParser
                     Verb = "delete",
                     Section = p.delete.tags[0],
                     Description = p.delete.summary,
-                    Parameters = p.delete.parameters.Select(pa => new Parameters
+                    Parameters = p.delete.parameters.Select(pa => new ApiParameters
                     {
                         Name = pa.name,
                         Location = pa.@in,
@@ -156,7 +156,7 @@ namespace JsonParser
                     Verb = "head",
                     Section = p.head.tags[0],
                     Description = p.head.summary,
-                    Parameters = p.head.parameters.Select(pa => new Parameters
+                    Parameters = p.head.parameters.Select(pa => new ApiParameters
                     {
                         Name = pa.name,
                         Location = pa.@in,
