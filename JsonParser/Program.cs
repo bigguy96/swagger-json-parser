@@ -1,23 +1,29 @@
 ﻿using JsonParser.Classes;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace JsonParser
 {
     class Program
     {
+        // trying out ways to read the paths and references.
         static async System.Threading.Tasks.Task Main(string[] args)
         {
             // Read the file and display it line by line.  
             var counter = 0;
             var line = string.Empty;
             var lines = new List<string>();
-            var sb = new System.Text.StringBuilder("");
+            var paths = new StringBuilder("");
             var mydocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             var json = System.IO.Path.Combine(mydocs, "GCWeb", "swagger_paths.json");
+            
+            //read file line by line.
             using (var reader = new StreamReader(json))
             {
                 while ((line = reader.ReadLine()) != null)
@@ -26,6 +32,7 @@ namespace JsonParser
                 }
             }
 
+            // format file which will allow to get info.
             foreach (var item in lines)
             {
                 if (counter == 6)
@@ -45,37 +52,41 @@ namespace JsonParser
 
                 if (item.Contains("paths"))
                 {
-                    sb.Append($"{item.Replace("{", "")} [");                    
+                    paths.Append($"{item.Replace("{", "")} [");
                 }
                 else if (item.Contains("api/v"))
                 {
-                    sb.Append("{");
-                    sb.Append(@$"""enpoint"":{item.Replace(":", "").Substring(0, item.Length - 2)},");
+                    paths.Append("{");
+                    paths.Append(@$"""enpoint"":{item.Replace(":", "").Substring(0, item.Length - 2)},");
                 }
                 else if (counter == 5)
                 {
-                    sb.Append(item.Replace("}", "},"));
-                    counter++;                    
+                    paths.Append(item.Replace("}", "},"));
+                    counter++;
                 }
                 else
                 {
-                    sb.Append(item);
+                    paths.Append(item);
                 }
             }
 
-            sb.Remove(sb.Length - 3, 2);
-            sb.AppendLine("]}");
-            sb.Replace("200", "r200");
-            sb.Replace("$ref", "ref");
-            sb.Replace("enum", "renum");
+            // some clean up.
+            paths.Remove(paths.Length - 3, 2);
+            paths.AppendLine("]}");
+            paths.Replace("200", "r200");
+            paths.Replace("$ref", "ref");
+            paths.Replace("enum", "renum");
 
-            await File.WriteAllTextAsync(System.IO.Path.Combine(mydocs, "GCWeb", "swagger_test.json"), sb.ToString());
+            // create new file with modified json.
+            await File.WriteAllTextAsync(System.IO.Path.Combine(mydocs, "GCWeb", "swagger_test.json"), paths.ToString());
 
+            // get information from new json file.
             var jfile = await File.ReadAllTextAsync(System.IO.Path.Combine(mydocs, "GCWeb", "swagger_test.json"));
-            var r = JsonConvert.DeserializeObject<Rootobject>(jfile);
-            var list = new List<Api>();
+            var pathData = JsonConvert.DeserializeObject<Rootobject>(jfile);
+            var apiList = new List<Api>();
 
-            var post = r.paths.Where(w => w.post != null)
+            // get post data.
+            var post = pathData.paths.Where(w => w.post != null)
                 .Select(p => new Api
                 {
                     Endpoint = p.enpoint,
@@ -93,7 +104,8 @@ namespace JsonParser
                     })
                 });
 
-            var get = r.paths.Where(w => w.get != null)
+            // get get data.
+            var get = pathData.paths.Where(w => w.get != null)
                 .Select(p => new Api
                 {
                     Endpoint = p.enpoint,
@@ -111,7 +123,8 @@ namespace JsonParser
                     })
                 });
 
-            var put = r.paths.Where(w => w.put != null)
+            // get put data.
+            var put = pathData.paths.Where(w => w.put != null)
                 .Select(p => new Api
                 {
                     Endpoint = p.enpoint,
@@ -129,7 +142,8 @@ namespace JsonParser
                     })
                 });
 
-            var delete = r.paths.Where(w => w.delete != null)
+            // get delete data.
+            var delete = pathData.paths.Where(w => w.delete != null)
                 .Select(p => new Api
                 {
                     Endpoint = p.enpoint,
@@ -147,7 +161,8 @@ namespace JsonParser
                     })
                 });
 
-            var head = r.paths.Where(w => w.head != null)
+            // get head data.
+            var head = pathData.paths.Where(w => w.head != null)
                 .Select(p => new Api
                 {
                     Endpoint = p.enpoint,
@@ -165,14 +180,17 @@ namespace JsonParser
                     })
                 });
 
-            list.AddRange(post);
-            list.AddRange(get);
-            list.AddRange(put);
-            list.AddRange(delete);
-            list.AddRange(head);
+            // add data into one list.
+            apiList.AddRange(post);
+            apiList.AddRange(get);
+            apiList.AddRange(put);
+            apiList.AddRange(delete);
+            apiList.AddRange(head);
 
-            var sections = list.OrderBy(x => x.Section).ToList();
+            // api list ordered by section.
+            var sections = apiList.OrderBy(x => x.Section).ToList();
 
+            // display api data.
             foreach (var section in sections)
             {
                 Console.WriteLine("############################################");
@@ -195,6 +213,36 @@ namespace JsonParser
                 }
             }
 
+            // read references file and append stringbuilder.
+            var referencesJson = await File.ReadAllTextAsync(System.IO.Path.Combine(mydocs, "GCWeb", "references.json"));
+            var referencesSb = new StringBuilder("");
+            using (var reader = new StreamReader(System.IO.Path.Combine(mydocs, "GCWeb", "references.json")))
+            {
+                while ((line = reader.ReadLine()) != null)
+                {
+                    referencesSb.Append(line.Trim());
+                }
+            }
+
+            // get reference section names.
+            // parse json file.
+            var referenceSections = referencesSb.ToString().Split(new[] { "}}}," }, StringSplitOptions.RemoveEmptyEntries);
+            var referenceNames = referenceSections.Select(x => x.Split('{', StringSplitOptions.RemoveEmptyEntries)[0]);
+            var jo = JObject.Parse(referencesJson);            
+
+            foreach (var referenceName in referenceNames)
+            {
+                var match = Regex.Match(referenceName, @"""(.*?)""");
+                var name = match.Value[1..^1];
+                var data = (JObject)jo[name]["properties"];
+
+                Console.WriteLine("############################################");
+                foreach (var d in data)
+                {
+                    Console.WriteLine($"Key: {d.Key} Value: {d.Value}");
+                }
+                Console.WriteLine("############################################");
+            }
             // Suspend the screen.  
             Console.ReadLine();
         }
@@ -202,3 +250,4 @@ namespace JsonParser
 }
 
 //https://stackoverflow.com/questions/29326796/deserialize-json-with-unknown-fields-properties
+//https://stackoverflow.com/questions/14714085/parsing-through-json-in-json-net-with-unknown-property-names
