@@ -4,6 +4,6 @@
     {
         public string type { get; set; }
         public string format { get; set; }
-        public string _ref { get; set; }
+        public string @ref { get; set; }
     }   
 }

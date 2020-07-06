@@ -1,12 +1,10 @@
 ﻿using JsonParser.Classes;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace JsonParser
 {
@@ -22,7 +20,7 @@ namespace JsonParser
             var paths = new StringBuilder("");
             var mydocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             var json = System.IO.Path.Combine(mydocs, "GCWeb", "swagger_paths.json");
-            
+
             //read file line by line.
             using (var reader = new StreamReader(json))
             {
@@ -32,7 +30,7 @@ namespace JsonParser
                 }
             }
 
-            // format file which will allow to get info.
+            // reformat the json and create a new file which will allow to get info.
             foreach (var item in lines)
             {
                 if (counter == 6)
@@ -75,9 +73,8 @@ namespace JsonParser
             paths.AppendLine("]}");
             paths.Replace("200", "r200");
             paths.Replace("$ref", "ref");
-            paths.Replace("enum", "renum");
 
-            // create new file with modified json.
+            // create new file with restructured json.
             await File.WriteAllTextAsync(System.IO.Path.Combine(mydocs, "GCWeb", "swagger_test.json"), paths.ToString());
 
             // get information from new json file.
@@ -85,113 +82,68 @@ namespace JsonParser
             var pathData = JsonConvert.DeserializeObject<Rootobject>(jfile);
             var apiList = new List<Api>();
 
-            // get post data.
-            var post = pathData.paths.Where(w => w.post != null)
-                .Select(p => new Api
-                {
-                    Endpoint = p.enpoint,
-                    Verb = "post",
-                    Section = p.post.tags[0],
-                    Description = p.post.summary,
-                    Parameters = p.post.parameters.Select(pa => new ApiParameters
-                    {
-                        Name = pa.name,
-                        Location = pa.@in,
-                        Description = pa.description,
-                        Type = pa.type,
-                        Enums = pa.renum,
-                        Required = pa.required
-                    })
-                });
+            foreach (var item in pathData.paths)
+            {
+                var verb = string.Empty;
+                var section = string.Empty;
+                var summary = string.Empty;
+                var parameters = new List<ApiParameters>();
 
-            // get get data.
-            var get = pathData.paths.Where(w => w.get != null)
-                .Select(p => new Api
+                if (item.get != null)
                 {
-                    Endpoint = p.enpoint,
-                    Verb = "get",
-                    Section = p.get.tags[0],
-                    Description = p.get.summary,
-                    Parameters = p.get.parameters.Select(pa => new ApiParameters
-                    {
-                        Name = pa.name,
-                        Location = pa.@in,
-                        Description = pa.description,
-                        Type = pa.type,
-                        Enums = pa.renum,
-                        Required = pa.required
-                    })
-                });
-
-            // get put data.
-            var put = pathData.paths.Where(w => w.put != null)
-                .Select(p => new Api
+                    verb = "get";
+                    section = item.get.tags[0];
+                    summary = item.get.summary;
+                    parameters = GetApiParameters(item.get.parameters);
+                }
+                else if (item.post != null)
                 {
-                    Endpoint = p.enpoint,
-                    Verb = "put",
-                    Section = p.put.tags[0],
-                    Description = p.put.summary,
-                    Parameters = p.put.parameters.Select(pa => new ApiParameters
-                    {
-                        Name = pa.name,
-                        Location = pa.@in,
-                        Description = pa.description,
-                        Type = pa.type,
-                        Enums = pa.renum,
-                        Required = pa.required
-                    })
-                });
-
-            // get delete data.
-            var delete = pathData.paths.Where(w => w.delete != null)
-                .Select(p => new Api
+                    verb = "post";
+                    section = item.post.tags[0];
+                    summary = item.post.summary;
+                    parameters = GetApiParameters(item.post.parameters);
+                }
+                else if (item.put != null)
                 {
-                    Endpoint = p.enpoint,
-                    Verb = "delete",
-                    Section = p.delete.tags[0],
-                    Description = p.delete.summary,
-                    Parameters = p.delete.parameters.Select(pa => new ApiParameters
-                    {
-                        Name = pa.name,
-                        Location = pa.@in,
-                        Description = pa.description,
-                        Type = pa.type,
-                        Enums = pa.renum,
-                        Required = pa.required
-                    })
-                });
-
-            // get head data.
-            var head = pathData.paths.Where(w => w.head != null)
-                .Select(p => new Api
+                    verb = "put";
+                    section = item.put.tags[0];
+                    summary = item.put.summary;
+                    parameters = GetApiParameters(item.put.parameters);
+                }
+                else if (item.delete != null)
                 {
-                    Endpoint = p.enpoint,
-                    Verb = "head",
-                    Section = p.head.tags[0],
-                    Description = p.head.summary,
-                    Parameters = p.head.parameters.Select(pa => new ApiParameters
-                    {
-                        Name = pa.name,
-                        Location = pa.@in,
-                        Description = pa.description,
-                        Type = pa.type,
-                        Enums = pa.renum,
-                        Required = pa.required
-                    })
-                });
+                    verb = "delete";
+                    section = item.delete.tags[0];
+                    summary = item.delete.summary;
+                    parameters = GetApiParameters(item.delete.parameters);
+                }
+                else if (item.head != null)
+                {
+                    verb = "head";
+                    section = item.head.tags[0];
+                    summary = item.head.summary;
+                    parameters = GetApiParameters(item.head.parameters);
+                }
+                else
+                {
+                    verb = "n/a";
+                }
 
-            // add data into one list.
-            apiList.AddRange(post);
-            apiList.AddRange(get);
-            apiList.AddRange(put);
-            apiList.AddRange(delete);
-            apiList.AddRange(head);
+                apiList.Add(new Api
+                {
+                    Endpoint = item.enpoint,
+                    Verb = verb,
+                    Section = section,
+                    Description = summary,
+                    Parameters = parameters
+                });
+            }
 
             // api list ordered by section.
-            var sections = apiList.OrderBy(x => x.Section).ToList();
+            apiList = apiList.OrderBy(x => x.Section).ToList();
 
             // display api data.
-            foreach (var section in sections)
+            foreach (var section in apiList)
             {
                 Console.WriteLine("############################################");
                 Console.WriteLine($"Section name: {section.Section}");
@@ -210,44 +162,32 @@ namespace JsonParser
                     Console.WriteLine($"parameter type: {param.Type}");
                     Console.WriteLine($"parameter enumeration: {param.Enumeration}");
                     Console.WriteLine($"parameter required: {param.Required}");
+                    Console.WriteLine($"parameter reference: {param.Reference}");
                 }
             }
 
-            // read references file and append stringbuilder.
-            var referencesJson = await File.ReadAllTextAsync(System.IO.Path.Combine(mydocs, "GCWeb", "references.json"));
-            var referencesSb = new StringBuilder("");
-            using (var reader = new StreamReader(System.IO.Path.Combine(mydocs, "GCWeb", "references.json")))
-            {
-                while ((line = reader.ReadLine()) != null)
-                {
-                    referencesSb.Append(line.Trim());
-                }
-            }
-
-            // get reference section names.
-            // parse json file.
-            var referenceSections = referencesSb.ToString().Split(new[] { "}}}," }, StringSplitOptions.RemoveEmptyEntries);
-            var referenceNames = referenceSections.Select(x => x.Split('{', StringSplitOptions.RemoveEmptyEntries)[0]);
-            var jo = JObject.Parse(referencesJson);            
-
-            foreach (var referenceName in referenceNames)
-            {
-                var match = Regex.Match(referenceName, @"""(.*?)""");
-                var name = match.Value[1..^1];
-                var data = (JObject)jo[name]["properties"];
-
-                Console.WriteLine("############################################");
-                foreach (var d in data)
-                {
-                    Console.WriteLine($"Key: {d.Key} Value: {d.Value}");
-                }
-                Console.WriteLine("############################################");
-            }
             // Suspend the screen.  
-            Console.ReadLine();
+            Console.ReadLine();            
+        }
+
+        private static List<ApiParameters> GetApiParameters(Parameter[] parameters)
+        {
+            return parameters
+                   .Select(parameter => new ApiParameters
+                   {
+                       Name = parameter.name,
+                       Location = parameter.@in,
+                       Description = parameter.description,
+                       Type = parameter.type,
+                       Enums = parameter.@enum,
+                       Required = parameter.required,
+                       Reference = parameter?.schema?.@ref
+                   }).ToList();
         }
     }
 }
 
 //https://stackoverflow.com/questions/29326796/deserialize-json-with-unknown-fields-properties
 //https://stackoverflow.com/questions/14714085/parsing-through-json-in-json-net-with-unknown-property-names
+//https://stackoverflow.com/questions/20318261/dynamic-object-with-dollar-on-string
+//https://github.com/Swagger2Markup/swagger2markup

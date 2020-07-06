@@ -9,5 +9,6 @@
         public string Enumeration => Enums !=null ?  string.Join(",", Enums) : "";
         public string[] Enums { get; set; }
         public bool Required { get; set; }
+        public string Reference { get; set; }
     }
 }

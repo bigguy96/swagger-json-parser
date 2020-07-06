@@ -9,6 +9,6 @@
         public Schema schema { get; set; }
         public string type { get; set; }
         public string format { get; set; }
-        public string[] renum { get; set; }
+        public string[] @enum { get; set; }
     }
 }

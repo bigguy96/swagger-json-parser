@@ -1,0 +1,172 @@
+{
+  "paths": {
+    "/api/v1/test": {
+      "post": {
+        "tags": [
+          "test"
+        ],
+        "summary": "test",
+        "description": "test.",
+        "operationId": "test",
+        "consumes": [
+          "application/json",
+          "text/json",
+          "text/html",
+          "application/xml",
+          "text/xml",
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json",
+          "text/json",
+          "text/html",
+          "application/xml",
+          "text/xml"
+        ],
+        "parameters": [
+          {
+            "name": "test",
+            "in": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/test"
+            }
+          },
+          {
+            "name": "app-jwt",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test2": {
+      "post": {
+        "tags": [
+          "test"
+        ],
+        "summary": "test2.",
+        "operationId": "test2",
+        "consumes": [
+          "application/json",
+          "text/json",
+          "text/html",
+          "application/xml",
+          "text/xml",
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json",
+          "text/json",
+          "text/html",
+          "application/xml",
+          "text/xml"
+        ],
+        "parameters": [
+          {
+            "name": "test2",
+            "in": "body",
+            "description": "test2.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/test"
+            }
+          },
+          {
+            "name": "app-jwt",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test3": {
+      "post": {
+        "tags": [
+          "test"
+        ],
+        "summary": "test3.",
+        "description": "test3.",
+        "operationId": "test3",
+        "consumes": [],
+        "produces": [
+          "application/json",
+          "text/json",
+          "text/html",
+          "application/xml",
+          "text/xml"
+        ],
+        "parameters": [
+          {
+            "name": "p1",
+            "in": "query",
+            "description": "p1.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "p2",
+            "in": "query",
+            "description": "p2.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "p3",
+            "in": "query",
+            "description": "p3.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "p4",
+            "in": "query",
+            "description": "p4.",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "p5",
+            "in": "query",
+            "description": "p5",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "app-jwt",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    }
+  }
+}

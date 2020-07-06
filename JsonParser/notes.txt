@@ -1,0 +1,33 @@
+﻿// read references file and append stringbuilder.
+            var referencesJson = await File.ReadAllTextAsync(System.IO.Path.Combine(mydocs, "GCWeb", "references.json"));
+            var referencesSb = new StringBuilder("");
+            using (var reader = new StreamReader(System.IO.Path.Combine(mydocs, "GCWeb", "references.json")))
+            {
+                while ((line = reader.ReadLine()) != null)
+                {
+                    referencesSb.Append(line.Trim());
+                }
+            }
+
+            // get reference section names.
+            // parse json file.
+            var referenceSections = referencesSb.ToString().Split(new[] { "}}}," }, StringSplitOptions.RemoveEmptyEntries);
+            var referenceNames = referenceSections.Select(x => x.Split('{', StringSplitOptions.RemoveEmptyEntries)[0]);
+            var jo = JObject.Parse(referencesJson);
+
+            foreach (var referenceName in referenceNames)
+            {
+                var match = Regex.Match(referenceName, @"""(.*?)""");
+                var name = match.Value[1..^1];
+                var data = (JObject)jo[name]["properties"];
+
+                Console.WriteLine("############################################");
+                foreach (var d in data)
+                {
+                    Console.WriteLine($"Key: {d.Key} Value: {d.Value}");
+                }
+                Console.WriteLine("############################################");
+            }
+            // Suspend the screen.  
+            Console.ReadLine();
+
