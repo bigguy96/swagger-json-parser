@@ -142,32 +142,69 @@ namespace JsonParser
             // api list ordered by section.
             apiList = apiList.OrderBy(x => x.Section).ToList();
 
+            var current = string.Empty;
+            var previous = string.Empty;
+
+            var template = await File.ReadAllTextAsync(System.IO.Path.Combine(mydocs, "GCWeb", "template.html"));
+            var html = new StringBuilder("");
+            html.AppendLine("<h1>API List</h1>");
+
             // display api data.
             foreach (var section in apiList)
             {
-                Console.WriteLine("############################################");
-                Console.WriteLine($"Section name: {section.Section}");
-                Console.WriteLine("############################################");
+                current = section.Section;
 
-                Console.WriteLine($"endpoint: {section.Endpoint}");
-                Console.WriteLine($"verb: {section.Verb}");
-                Console.WriteLine($"section: {section.Section}");
-                Console.WriteLine($"description: {section.Description}");
+                if (!current.Equals(previous))
+                {
+                    html.AppendLine($"<h2>{section.Section}</h2>");
+                    html.AppendLine("<hr />");
+                }
+
+                html.AppendLine($@"<h3 class=""bg-light"">{section.Verb.ToUpper()} - {section.Endpoint}</h3>");
+                html.AppendLine("<h4>Description</h4>");
+                html.AppendLine(section.Description);
+
+                html.AppendLine("<h4>Parameters</h4>");
+                html.AppendLine(@"<table class=""table table-bordered table-dark table-hover"">");
+                html.AppendLine("<thead>");
+                html.AppendLine("<tr>");
+                html.AppendLine(@"<th scope=""col"">Name</th>");
+                html.AppendLine(@"<th scope=""col"">Location</th>");
+                html.AppendLine(@"<th scope=""col"">Descrption</th>");
+                html.AppendLine(@"<th scope=""col"">Type</th>");
+                html.AppendLine(@"<th scope=""col"">Enum</th>");
+                html.AppendLine(@"<th scope=""col"">Is Required</th>");
+                html.AppendLine(@"<th scope=""col"">Reference</th>");
+                html.AppendLine("</tr>");
+                html.AppendLine("</thead>");
+                html.AppendLine("<tbody>");
 
                 foreach (var param in section.Parameters)
                 {
-                    Console.WriteLine($"parameter name: {param.Name}");
-                    Console.WriteLine($"parameter location: {param.Location}");
-                    Console.WriteLine($"parameter description: {param.Description}");
-                    Console.WriteLine($"parameter type: {param.Type}");
-                    Console.WriteLine($"parameter enumeration: {param.Enumeration}");
-                    Console.WriteLine($"parameter required: {param.Required}");
-                    Console.WriteLine($"parameter reference: {param.Reference}");
+                    html.AppendLine("<tr>");
+                    html.AppendLine($"<td>{param.Name}</td>");
+                    html.AppendLine($"<td>{param.Location}</td>");
+                    html.AppendLine($"<td>{param.Description}</td>");
+                    html.AppendLine($"<td>{param.Type}</td>");
+                    html.AppendLine($"<td>{param.Enumeration}</td>");
+                    html.AppendLine($"<td>{param.Required}</td>");
+                    html.AppendLine($"<td>{param.Reference}</td>");
                 }
+
+                html.AppendLine("</tbody>");
+                html.AppendLine("</table>");
+
+                previous = section.Section;
             }
 
+            html.AppendLine("</body>");
+            html.AppendLine("</html>");
+            template += html.ToString();
+
+            await File.WriteAllTextAsync(System.IO.Path.Combine(mydocs, "GCWeb", "apilist.html"), template);
+
             // Suspend the screen.  
-            Console.ReadLine();            
+            Console.ReadLine();
         }
 
         private static List<ApiParameters> GetApiParameters(Parameter[] parameters)
