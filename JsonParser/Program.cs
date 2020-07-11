@@ -144,9 +144,25 @@ namespace JsonParser
 
             var current = string.Empty;
             var previous = string.Empty;
-
             var template = await File.ReadAllTextAsync(System.IO.Path.Combine(mydocs, "GCWeb", "template.html"));
             var html = new StringBuilder("");
+
+            html.AppendLine(@"<div class=""row"">");
+            html.AppendLine(@"<div class=""col-2"">");
+            html.AppendLine(@"<nav class=""navbar bg-light"">");
+            html.AppendLine(@"<ul class=""nav navbar-nav"">");
+
+            var grouped = apiList.GroupBy(x => x.Section);
+            foreach (var section in grouped)
+            {                
+                html.AppendLine(@$"<li class=""nav-item""><a class=""nav-link"" href=""#{section.Key}"">{section.Key}</a></li>");
+            }
+
+            html.AppendLine("</ul>");
+            html.AppendLine("</nav>");
+            html.AppendLine("</div>");
+            html.AppendLine(@"<div class=""col-10"">");
+            html.AppendLine(@"<div class=""container1"">");
             html.AppendLine("<h1>API List</h1>");
 
             // display api data.
@@ -156,17 +172,20 @@ namespace JsonParser
 
                 if (!current.Equals(previous))
                 {
-                    html.AppendLine($"<h2>{section.Section}</h2>");
+                    //html.AppendLine("<details>");
+                    html.AppendLine(@$"<h2 id=""{section.Section}"">{section.Section}</h2>");
                     html.AppendLine("<hr />");
                 }
 
-                html.AppendLine($@"<h3 class=""bg-light"">{section.Verb.ToUpper()} - {section.Endpoint}</h3>");
+                html.AppendLine(@"<div class=""card border-dark"">");
+                html.AppendLine($@"<div class=""card-header""><h3 class=""bg-light"">{section.Verb.ToUpper()} - {section.Endpoint}</h3></div>");
+                html.AppendLine(@"<div class=""card-body"">");
                 html.AppendLine("<h4>Description</h4>");
                 html.AppendLine(section.Description);
 
                 html.AppendLine("<h4>Parameters</h4>");
-                html.AppendLine(@"<table class=""table table-bordered table-dark table-hover"">");
-                html.AppendLine("<thead>");
+                html.AppendLine(@"<table class=""table table-bordered table-hover"">");
+                html.AppendLine(@"<thead class=""thead-dark"">");
                 html.AppendLine("<tr>");
                 html.AppendLine(@"<th scope=""col"">Name</th>");
                 html.AppendLine(@"<th scope=""col"">Location</th>");
@@ -194,16 +213,46 @@ namespace JsonParser
                 html.AppendLine("</tbody>");
                 html.AppendLine("</table>");
 
-                previous = section.Section;
+                html.AppendLine("<h4>Responses</h4>");
+                html.AppendLine(@"<table class=""table table-bordered table-hover"">");
+                html.AppendLine(@"<thead class=""thead-dark"">");
+                html.AppendLine("<tr>");
+                html.AppendLine(@"<th scope=""col"">HTTP Code</th>");
+                html.AppendLine(@"<th scope=""col"">Descrption</th>");
+                html.AppendLine("</tr>");
+                html.AppendLine("</thead>");
+                html.AppendLine("<tbody>");
+                html.AppendLine("<tr>");
+                html.AppendLine("<td>200</td>");
+                html.AppendLine("<td>Ok</td>");
+                html.AppendLine("</tr>");
+                html.AppendLine("<tr>");
+                html.AppendLine("<td>400</td>");
+                html.AppendLine("<td>Bad Request</td>");
+                html.AppendLine("</tr>");
+                html.AppendLine("<tr>");
+                html.AppendLine("<td>401</td>");
+                html.AppendLine("<td>Unautorized</td>");
+                html.AppendLine("</tr>");
+                html.AppendLine("</tbody>");
+                html.AppendLine("</table>");
+                html.AppendLine("</div>");
+                html.AppendLine("</div>");
+
+                previous = current;
             }
 
+            html.AppendLine("</div>");
+            html.AppendLine("</div>");
             html.AppendLine("</body>");
             html.AppendLine("</html>");
+
             template += html.ToString();
 
             await File.WriteAllTextAsync(System.IO.Path.Combine(mydocs, "GCWeb", "apilist.html"), template);
 
-            // Suspend the screen.  
+            // Suspend the screen.
+            Console.WriteLine("done!");
             Console.ReadLine();
         }
 
